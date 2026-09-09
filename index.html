@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Loading</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background: #02040b;
+    color: white;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+}
+
+/* Hintergrund */
+.background {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 45%, #10285a 0%, transparent 30%),
+        radial-gradient(circle at 20% 20%, #08152e 0%, transparent 35%),
+        radial-gradient(circle at 80% 80%, #061126 0%, transparent 40%),
+        #02040b;
+}
+
+/* Sterne */
+.stars {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    opacity: .7;
+    animation: twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle {
+    from { opacity: .15; transform: scale(.6); }
+    to   { opacity: .9; transform: scale(1.4); }
+}
+
+/* Hauptcontainer */
+.loader {
+    position: relative;
+    width: 360px;
+    height: 460px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+/* Leuchtender Boden */
+.floor {
+    position: absolute;
+    width: 250px;
+    height: 90px;
+    border-radius: 50%;
+    background: #168cff;
+    filter: blur(45px);
+    opacity: .25;
+    transform: rotateX(70deg) translateY(100px);
+}
+
+/* 3D-Würfel */
+.scene {
+    width: 150px;
+    height: 150px;
+    perspective: 800px;
+    position: relative;
+}
+
+.cube {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    left: 15px;
+    top: 15px;
+    transform-style: preserve-3d;
+    animation: cubeRotate 7s linear infinite;
+}
+
+@keyframes cubeRotate {
+    0% {
+        transform: rotateX(-20deg) rotateY(0deg) rotateZ(0deg);
+    }
+
+    50% {
+        transform: rotateX(160deg) rotateY(180deg) rotateZ(10deg);
+    }
+
+    100% {
+        transform: rotateX(340deg) rotateY(360deg) rotateZ(0deg);
+    }
+}
+
+.face {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(100,200,255,.8);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(40,160,255,.35),
+            rgba(40,80,255,.08)
+        );
+
+    box-shadow:
+        inset 0 0 30px rgba(60,180,255,.18),
+        0 0 18px rgba(30,140,255,.25);
+
+    backdrop-filter: blur(3px);
+}
+
+.front  { transform: translateZ(60px); }
+.back   { transform: rotateY(180deg) translateZ(60px); }
+.right  { transform: rotateY(90deg) translateZ(60px); }
+.left   { transform: rotateY(-90deg) translateZ(60px); }
+.top    { transform: rotateX(90deg) translateZ(60px); }
+.bottom { transform: rotateX(-90deg) translateZ(60px); }
+
+/* Würfel-Kern */
+.core {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+
+    background: #7ddcff;
+
+    box-shadow:
+        0 0 15px #42c8ff,
+        0 0 35px #178fff,
+        0 0 70px rgba(40,150,255,.8);
+
+    animation: corePulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes corePulse {
+    from {
+        transform: scale(.7);
+        opacity: .65;
+    }
+    to {
+        transform: scale(1.25);
+        opacity: 1;
+    }
+}
+
+/* Orbit */
+.orbit {
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    border: 1px solid rgba(80,180,255,.25);
+    border-radius: 50%;
+    transform: rotateX(70deg);
+    animation: orbitRotate 5s linear infinite;
+}
+
+.orbit::before,
+.orbit::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #72dcff;
+    box-shadow: 0 0 20px #2aaeff;
+}
+
+.orbit::before {
+    top: -4px;
+    left: 50%;
+}
+
+.orbit::after {
+    bottom: -4px;
+    left: 50%;
+}
+
+@keyframes orbitRotate {
+    from { transform: rotateX(70deg) rotateZ(0deg); }
+    to   { transform: rotateX(70deg) rotateZ(360deg); }
+}
+
+/* Text */
+.title {
+    margin-top: 55px;
+    font-size: 20px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    font-weight: 300;
+    opacity: .9;
+}
+
+.status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #81cfff;
+    letter-spacing: 2px;
+}
+
+/* Fortschritt */
+.progress-container {
+    position: absolute;
+    bottom: 30px;
+    width: 270px;
+}
+
+.progress {
+    height: 3px;
+    width: 100%;
+    background: rgba(255,255,255,.08);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #167cff, #78e7ff);
+    box-shadow:
+        0 0 10px #249eff,
+        0 0 25px #249eff;
+    transition: width .15s linear;
+}
+
+.percent {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,.7);
+}
+
+/* Glaseffekt */
+.glow {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: #008cff;
+    filter: blur(90px);
+    opacity: .12;
+    animation: glowPulse 2s infinite alternate;
+}
+
+@keyframes glowPulse {
+    from { transform: scale(.8); opacity: .08; }
+    to   { transform: scale(1.3); opacity: .2; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="background"></div>
+<div class="stars" id="stars"></div>
+
+<div class="loader">
+
+    <div class="glow"></div>
+    <div class="floor"></div>
+
+    <div class="scene">
+
+        <div class="orbit"></div>
+
+        <div class="cube">
+
+            <div class="face front">
+                <div class="core"></div>
+            </div>
+
+            <div class="face back"></div>
+            <div class="face right"></div>
+            <div class="face left"></div>
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+
+        </div>
+    </div>
+
+    <div class="title">Loading</div>
+    <div class="status" id="status">System wird gestartet...</div>
+
+    <div class="progress-container">
+
+        <div class="progress">
+            <div class="progress-bar" id="bar"></div>
+        </div>
+
+        <div class="percent" id="percent">0%</div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* Sterne erzeugen */
+const stars = document.getElementById("stars");
+
+for (let i = 0; i < 100; i++) {
+
+    const star = document.createElement("div");
+
+    star.className = "star";
+
+    star.style.left = Math.random() * 100 + "%";
+    star.style.top = Math.random() * 100 + "%";
+
+    star.style.animationDelay =
+        (Math.random() * 3) + "s";
+
+    star.style.animationDuration =
+        (1 + Math.random() * 3) + "s";
+
+    stars.appendChild(star);
+}
+
+
+/* Ladeanimation */
+const bar = document.getElementById("bar");
+const percent = document.getElementById("percent");
+const status = document.getElementById("status");
+
+const messages = [
+    "System wird gestartet...",
+    "3D-Kern wird initialisiert...",
+    "Module werden geladen...",
+    "Verbindungen werden hergestellt...",
+    "Daten werden synchronisiert...",
+    "Oberfläche wird vorbereitet...",
+    "Fast fertig...",
+    "System bereit."
+];
+
+let progress = 0;
+
+function load() {
+
+    if (progress < 100) {
+
+        progress += Math.random() * 1.8;
+
+        if (progress > 100)
+            progress = 100;
+
+        const value = Math.floor(progress);
+
+        bar.style.width = value + "%";
+        percent.textContent = value + "%";
+
+        const index =
+            Math.min(
+                messages.length - 1,
+                Math.floor(progress / 100 * messages.length)
+            );
+
+        status.textContent = messages[index];
+
+        setTimeout(load, 80 + Math.random() * 120);
+
+    } else {
+
+        status.textContent = "System bereit.";
+
+        /* kleine Pause */
+        setTimeout(() => {
+
+            document.querySelector(".loader").style
+                .transition = "opacity 1s, transform 1s";
+
+            document.querySelector(".loader").style.opacity = "0";
+            document.querySelector(".loader").style.transform =
+                "scale(1.15)";
+
+        }, 700);
+    }
+}
+
+load();
+
+</script>
+
+</body>
+  </html>
